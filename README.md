@@ -58,3 +58,16 @@ Just open `index.html` (eventually via a local server)
 
 * randomizing feature
 * proper automated tests
+* implement all handlers as in https://xhr.spec.whatwg.org/
+
+interface XMLHttpRequestEventTarget : EventTarget {
+  // event handlers
+  attribute EventHandler onloadstart;
+  attribute EventHandler onprogress;
+  attribute EventHandler onabort;
+  attribute EventHandler onerror;
+  attribute EventHandler onload;
+  attribute EventHandler ontimeout;
+  attribute EventHandler onloadend;
+};
+

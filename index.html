@@ -37,6 +37,11 @@
         console.log('Progress: ' + e.loaded + ' of ' + e.total);
       };
 
+      xhr.onloadend = function(e) {
+        console.log('Loading ended');
+        //console.log(e);
+      }
+
       xhr.withCredentials = false;
       xhr.open('GET', "http://www.streambox.fr/playlists/test_001/stream_110k_48k_416x234_000.ts", true);
       xhr.responseType = 'arraybuffer';

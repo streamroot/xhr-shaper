@@ -68,7 +68,7 @@ function mirrorFunc(target, source, func) {
 var XMLHttpRequest = function() {
 	var xhr = new WindowXHR();
 	var shaper = new XHRShaper();
-	var _onreadystatechange, _onprogress;
+	var _onreadystatechange, _onprogress, _onloadend;
 	var _this = {
 		shaper: shaper
 	};
@@ -79,6 +79,11 @@ var XMLHttpRequest = function() {
 	var progressEvents = [];
 	var progressTimer;
 	var lastProgressEvent = false;
+	var loadEndEvent;
+
+	xhr.onloadend = function(event) {
+		loadEndEvent = event;
+	};
 
 	xhr.onreadystatechange = function(event) {
 		if (_onreadystatechange) {
@@ -117,6 +122,11 @@ var XMLHttpRequest = function() {
 						}
 
 						_onreadystatechange(event);
+
+						if (loadEndEvent && _onloadend) {
+							_onloadend(loadEndEvent);
+						}
+
 					}, Math.max(delay1, delay2));
 					break;
 				}
@@ -177,6 +187,15 @@ var XMLHttpRequest = function() {
 		},
 		set: function(handler) {
 			_onprogress = handler;
+		}
+	});
+
+	Object.defineProperty(_this, "onloadend", {
+		get: function() {
+			return xhr.onloadend;
+		},
+		set: function(handler) {
+			_onloadend = handler;
 		}
 	});
 
