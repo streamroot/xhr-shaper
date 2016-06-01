@@ -11,7 +11,7 @@ Shapes your XHR requests to a max emulated bandwidth and latency, randomizes fre
 require('xhr-shaper'); // NOTE: you can also include `index.js` as static script into your page
 ```
 
-NOTE: Loading this module will overload the XHR constructor in the `window` to produce a mirror object which will have the exact same behavior, but it's not an instance of the native `XMLHttpRequest` (in case that matters for some reason to you). The mirror XHR has an additional property called `shaper` ... 
+NOTE: Loading this module will overload the XHR constructor in the `window` to produce a mirror object which will have the exact same behavior, but it's not an instance of the native `XMLHttpRequest` (in case that matters for some reason to you). The mirror XHR has an additional property called `shaper` ...
 
 ```
 var xhr = new XMLHttpRequest();
@@ -34,6 +34,14 @@ xhr.shaper.minLatency = 1000;
 
 // Set your maximum desired bandwidth
 xhr.shaper.maxBandwidth = 512;
+```
+
+Or make these things global so they will apply on ALL requests!!!
+
+```
+// all requests will be limited to 64kbps and take at least 5000 ms
+XMLHttpRequest.Shaper.maxBandwidth = 64;
+XMLHttpRequest.Shaper.minLatency = 5000;
 ```
 
 ... wait for things to happen.

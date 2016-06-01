@@ -3,11 +3,41 @@
 // This will shim the XHR object in your window and add some custom functionnality on top in the Shaper object
 
 var XHRShaper = function() {
-	this.maxBandwidth = Math.Infinity;
-	this.minLatency = 0;
-	this.minProgressEvents = 0;
-	this.randomness = 0;
+	var _maxBandwidth = Infinity;
+	var _minLatency = 0;
+	var _minProgressEvents = 0;
+	var _randomness = 0;
+
+	Object.defineProperty(this, "maxBandwidth", {
+		get: function() {
+			return Math.min(_maxBandwidth, XHRShaper.maxBandwidth);
+		},
+		set: function(val) { _maxBandwidth = val }
+	});
+	Object.defineProperty(this, "minLatency", {
+		get: function() {
+			return Math.max(_minLatency, XHRShaper.minLatency);
+		},
+		set: function(val) { _minLatency = val }
+	});
+	Object.defineProperty(this, "minProgressEvents", {
+		get: function() {
+			return Math.max(_minProgressEvents, XHRShaper.minProgressEvents);
+		},
+		set: function(val) { _minProgressEvents = val }
+	});
+	Object.defineProperty(this, "randomness", {
+		get: function() {
+			return Math.max(_randomness, XHRShaper.randomness);
+		},
+		set: function(val) { _randomness = val }
+	});
 };
+
+XHRShaper.maxBandwidth = Infinity;
+XHRShaper.minLatency = 0;
+XHRShaper.minProgressEvents = 0;
+XHRShaper.randomness = 0;
 
 var WindowXHR = window.XMLHttpRequest;
 
@@ -174,8 +204,13 @@ var XMLHttpRequest = function() {
 	return _this;
 };
 
+XMLHttpRequest.Shaper = XHRShaper;
+
+// Export our XMLHttpRequest mirror constructor as module
+if (typeof module !== 'undefined') {
+	module.exports = XMLHttpRequest;
+}
+
+// Overload native window constructor
 window.XMLHttpRequest = XMLHttpRequest;
 
-if (typeof module !== 'undefined') {
-	module.exports = Shaper;
-}
