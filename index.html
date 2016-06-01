@@ -16,12 +16,24 @@
 
     <script>
 
+      var loaded, total;
+
       var xhr = new XMLHttpRequest();
 
       xhr.onreadystatechange = function(e) {
         console.log('readyState: ' + xhr.readyState);
+
+        if (xhr.readyState === 4) {
+          doneTime = Date.now();
+          var duration = doneTime - reqTime;
+          var bitrate = Math.round(8*total / duration);
+          console.debug('Loaded ' + total + ' bytes in ' + duration + ' ms, computed bitrate: ' + bitrate + ' kbps');
+        }
       };
       xhr.onprogress = function(e) {
+        loaded = e.loaded;
+        total = e.total;
+
         console.log('Progress: ' + e.loaded + ' of ' + e.total);
       };
 
@@ -31,6 +43,11 @@
 
       xhr.shaper.minLatency = 1000;
       xhr.shaper.maxBandwidth = 512;
+
+      console.debug('Max bandwidth: ' + xhr.shaper.maxBandwidth);
+      console.debug('Min latency: ' + xhr.shaper.minLatency);
+
+      var reqTime = Date.now(), doneTime;
 
       xhr.send();
 
