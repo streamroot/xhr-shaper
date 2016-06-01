@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <!-- encoding must be set for mocha's special characters to render properly -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/2.4.5/mocha.css" />
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/2.4.5/mocha.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/should.js/8.1.1/should.js"></script>
+    <script>
+      mocha.ui('bdd')
+    </script>
+
+    <script src="./index.js"></script>
+
+    <script>
+      var xhr = new XMLHttpRequest();
+
+      xhr.onreadystatechange = function(e) {
+        console.log('readyState: ' + xhr.readyState);
+      };
+      xhr.onprogress = function(e) {
+        console.log('Progress: ' + e.loaded + ' of ' + e.total);
+      };
+
+      xhr.withCredentials = false;
+      xhr.open('GET', "http://www.streambox.fr/playlists/test_001/stream_110k_48k_416x234_000.ts", true);
+      xhr.responseType = 'arraybuffer';
+
+      xhr.shaper.minLatency = 1000;
+      xhr.shaper.maxBandwidth = 512;
+
+      xhr.send();
+
+    </script>
+
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>

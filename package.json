@@ -1,0 +1,22 @@
+{
+  "name": "xhr-shaper",
+  "version": "0.0.0",
+  "description": "Shapes your XHR requests to a max emulated bandwidth and latency, randomizes frequency of progress events ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Network",
+    "emulator",
+    "XHR",
+    "traffic",
+    "shaper",
+    "simulate",
+    "bandwidth",
+    "RTT",
+    "latency"
+  ],
+  "author": "Stephan Hesse <tchakabam@gmail.com>",
+  "license": "MIT"
+}
