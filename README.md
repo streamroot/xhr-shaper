@@ -8,7 +8,7 @@ Shapes your XHR requests to a max emulated bandwidth and latency, randomizes fre
 ### How to use:
 
 ```
-require('xhr-shaper');
+require('xhr-shaper'); // NOTE: you can also include `index.js` as static script into your page
 
 var xhr = new XMLHttpRequest();
 
