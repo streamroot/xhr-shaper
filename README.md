@@ -11,7 +11,7 @@ Shapes your XHR requests to a max emulated bandwidth and latency, randomizes fre
 require('xhr-shaper'); // NOTE: you can also include `index.js` as static script into your page
 ```
 
-WARNING: loading this module will overload all XHR objects in the `window` with a mirror object. It shouldn't matter.
+NOTE: Loading this module will overload the XHR constructor in the `window` to produce a mirror object which will have the exact same behavior, but it's not an instance of the native `XMLHttpRequest` (in case that matters for some reason to you). The mirror XHR has an additional property called `shaper` ... 
 
 ```
 var xhr = new XMLHttpRequest();
