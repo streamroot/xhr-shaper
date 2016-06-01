@@ -117,12 +117,12 @@ var XMLHttpRequest = function() {
 		total = event.total;
 		currentBitrateKpbs = 8 * loaded / duration; // kbps
 
-		console.log('current bitrate: ' + Math.round(currentBitrateKpbs) + ' kbps');
+		//console.log('current bitrate: ' + Math.round(currentBitrateKpbs) + ' kbps');
 
 		if (currentBitrateKpbs > shaper.maxBandwidth) {
 			delay = (currentBitrateKpbs / shaper.maxBandwidth) * duration - duration;
 			progressEvents.push(event);
-			console.log('delaying progress event by ' + Math.round(delay) + ' ms');
+			//console.log('delaying progress event by ' + Math.round(delay) + ' ms');
 			progressTimer = setTimeout(function() {
 				triggerProgress(event);
 			}, delay);
