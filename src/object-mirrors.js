@@ -31,12 +31,6 @@ function mirrorRwProp(target, source, prop) {
 }
 
 function mirrorFunc(target, source, func) {
-	if (typeof source[func] === 'undefined'){
-		target[func] = function() {
-			throw new Error(ERROR_SOURCE_FUNCTION_NOT_IMPLEMENTED);
-		}
-		return;
-	}
     target[func] = function() {
     	checkProperty(source, func);
     	source[func].apply(source, arguments);
