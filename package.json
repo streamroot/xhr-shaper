@@ -1,10 +1,13 @@
 {
   "name": "xhr-shaper",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "description": "Shapes your XHR requests to a max emulated bandwidth and latency, randomizes frequency of progress events",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run dev",
+    "clean": "rm -Rf dist",
+    "build": "./node_modules/.bin/webpack --entry ./index --output-file dist/build.js --output-library XHRShaper",
+    "dev": "./node_modules/.bin/webpack-dev-server --entry ./index --output-file ./index.js --output-library XHRShaper"
   },
   "keywords": [
     "Network",
@@ -18,5 +21,9 @@
     "latency"
   ],
   "author": "Stephan Hesse <tchakabam@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "1.13.1",
+    "webpack-dev-server": "1.14.1"
+  }
 }
