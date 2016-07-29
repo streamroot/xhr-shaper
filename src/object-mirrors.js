@@ -4,7 +4,7 @@ var ERROR_SOURCE_PROPERTY_NOT_IMPLEMENTED = 'Requiring undefined property on sou
 
 function checkProperty(source, prop) {
     if (typeof source[prop] === 'undefined') {
-        throw new Error(ERROR_SOURCE_PROPERTY_NOT_IMPLEMENTED);
+        throw new Error(ERROR_SOURCE_PROPERTY_NOT_IMPLEMENTED + ': ' + prop);
     }
 }
 
