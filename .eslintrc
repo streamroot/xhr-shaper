@@ -1,0 +1,10 @@
+{
+    "env": {
+        "browser": true,
+        "mocha": true,
+        "node": true
+    },
+    "globals": {},
+    "settings": {},
+    "extends": "streamroot"
+}
