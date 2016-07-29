@@ -8,25 +8,25 @@ var XHRShaper = function() {
         get: function() {
             return Math.min(_maxBandwidth, XHRShaper.maxBandwidth);
         },
-        set: function(val) { _maxBandwidth = val }
+        set: function(val) { _maxBandwidth = val; }
     });
     Object.defineProperty(this, "minLatency", {
         get: function() {
             return Math.max(_minLatency, XHRShaper.minLatency);
         },
-        set: function(val) { _minLatency = val }
+        set: function(val) { _minLatency = val; }
     });
     Object.defineProperty(this, "minProgressEvents", {
         get: function() {
             return Math.max(_minProgressEvents, XHRShaper.minProgressEvents);
         },
-        set: function(val) { _minProgressEvents = val }
+        set: function(val) { _minProgressEvents = val; }
     });
     Object.defineProperty(this, "randomness", {
         get: function() {
             return Math.max(_randomness, XHRShaper.randomness);
         },
-        set: function(val) { _randomness = val }
+        set: function(val) { _randomness = val; }
     });
 };
 

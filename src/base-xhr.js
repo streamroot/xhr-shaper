@@ -9,7 +9,7 @@ var BaseXHR = function(xhrImpl, onreadystatechange, onprogress, onloadend) {
 
     var _onreadystatechange = onreadystatechange || function() {};
     var _onprogress = onprogress || function() {};
-    var _onloadend = onloadend || function() {}; 
+    var _onloadend = onloadend || function() {};
 
     Object.defineProperty(instance, "onreadystatechange", {
         get: function() {

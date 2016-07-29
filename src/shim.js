@@ -35,52 +35,52 @@ var XMLHttpRequest = function() {
         }
 
         switch (xhr.readyState) {
-        case 0: // UNSENT
-            triggerStateChange(event);
-            break;
-        case 1: // OPENED
-            openedTs = Date.now();
-            triggerStateChange(event);
-            break;
-        case 2: // HEADERS_RECEIVE
-            headersTs = Date.now();
-            triggerStateChange(event);
-            break;
-        case 3: // LOADING
-            loadingTs = Date.now();
-            triggerStateChange(event);
-            break;
-        case 4: // DONE
-            var delay1 = 0, delay2 = 0;
-            doneTs = Date.now();
-            var latency = doneTs - openedTs;
-            if (latency < shaper.minLatency) {
-                delay1 = shaper.minLatency - latency;
-            }
-            if (currentBitrateKpbs > shaper.maxBandwidth) {
-                delay2 = (currentBitrateKpbs / shaper.maxBandwidth) * latency - latency;
-            }
-            if (delay1 || delay2) {
-                setTimeout(function() {
-
-                    if (loaded === total && !lastProgressEvent) {
-                        clearTimeout(progressTimer);
-                        _onprogress(progressEvents[progressEvents.length-1]);
-                    }
-
-                    triggerStateChange(event);
-
-                    if (loadEndEvent && _onloadend) {
-                        _onloadend(loadEndEvent);
-                    }
-
-                }, Math.max(delay1, delay2));
+            case 0: // UNSENT
+                triggerStateChange(event);
                 break;
-            }
+            case 1: // OPENED
+                openedTs = Date.now();
+                triggerStateChange(event);
+                break;
+            case 2: // HEADERS_RECEIVE
+                headersTs = Date.now();
+                triggerStateChange(event);
+                break;
+            case 3: // LOADING
+                loadingTs = Date.now();
+                triggerStateChange(event);
+                break;
+            case 4: // DONE
+                var delay1 = 0, delay2 = 0;
+                doneTs = Date.now();
+                var latency = doneTs - openedTs;
+                if (latency < shaper.minLatency) {
+                    delay1 = shaper.minLatency - latency;
+                }
+                if (currentBitrateKpbs > shaper.maxBandwidth) {
+                    delay2 = (currentBitrateKpbs / shaper.maxBandwidth) * latency - latency;
+                }
+                if (delay1 || delay2) {
+                    setTimeout(function() {
 
-            triggerStateChange(event);
+                        if (loaded === total && !lastProgressEvent) {
+                            clearTimeout(progressTimer);
+                            _onprogress(progressEvents[progressEvents.length - 1]);
+                        }
 
-            break;
+                        triggerStateChange(event);
+
+                        if (loadEndEvent && _onloadend) {
+                            _onloadend(loadEndEvent);
+                        }
+
+                    }, Math.max(delay1, delay2));
+                    break;
+                }
+
+                triggerStateChange(event);
+
+                break;
         }
 
     };
@@ -106,12 +106,12 @@ var XMLHttpRequest = function() {
         total = event.total;
         currentBitrateKpbs = 8 * loaded / duration; // kbps
 
-        //console.log('current bitrate: ' + Math.round(currentBitrateKpbs) + ' kbps');
+        // console.log('current bitrate: ' + Math.round(currentBitrateKpbs) + ' kbps');
 
         if (currentBitrateKpbs > shaper.maxBandwidth) {
             delay = (currentBitrateKpbs / shaper.maxBandwidth) * duration - duration;
             progressEvents.push(event);
-            //console.log('delaying progress event by ' + Math.round(delay) + ' ms');
+            // console.log('delaying progress event by ' + Math.round(delay) + ' ms');
             progressTimer = setTimeout(function() {
                 triggerProgress(event);
             }, delay);

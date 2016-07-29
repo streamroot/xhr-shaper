@@ -2,7 +2,6 @@
 
 var BaseXHR = require('./src/base-xhr');
 var objectMirrors = require('./src/object-mirrors');
-var XHRShaper = require('./src/shaper');
 var XMLHttpRequestShim = require('./src/shim');
 
 // Export all our stuff via module if we are one
