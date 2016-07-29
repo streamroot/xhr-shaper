@@ -7,11 +7,25 @@ Shapes your XHR requests to a max emulated bandwidth and latency, randomizes fre
 
 ### How to use:
 
+As global/window shim
 ```
-require('xhr-shaper'); // NOTE: you can also include `index.js` as static script into your page
+var XHRShaper = require('xhr-shaper');
+
+XHRShaper.useGlobal();
+
+// now XMLHttpRequest object is the shim
 ```
 
-NOTE: Loading this module will overload the XHR constructor in the `window` to produce a mirror object which will have the exact same behavior, but it's not an instance of the native `XMLHttpRequest` (in case that matters for some reason to you). The mirror XHR has an additional property called `shaper` ...
+NOTE: Running `useGlobal` will overload the XHR constructor in the `window` to produce a mirror object which will have the exact same behavior, but it's not an instance of the native `XMLHttpRequest` (in case that matters for some reason to you). The mirror XHR has an additional property called `shaper` ...
+
+Or in a modular way
+```
+var XHRShaper = require('xhr-shaper');
+
+var xhr = XHRShaper.XMLHttpRequest; 
+```
+
+NOTE: XHRShaper module exposes some fancy undocumented stuff like `BaseXHR` and `objectMirrors`. These might be moved into their own package in the future.
 
 ```
 var xhr = new XMLHttpRequest();
@@ -52,7 +66,9 @@ xhr.send();
 
 ### Test/dev:
 
-Just open `index.html` (eventually via a local server)
+Run `npm run dev`
+
+Now go to http://localhost:8080/webpack-dev-server/
 
 ### TODOs:
 
