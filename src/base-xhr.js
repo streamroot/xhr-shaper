@@ -2,41 +2,10 @@
 
 var objectMirrors = require('./object-mirrors');
 
-var BaseXHR = function(xhrImpl, onreadystatechange, onprogress, onloadend) {
+var BaseXHR = function(xhrImpl /* , onreadystatechange, onprogress, onloadend*/) {
 
     var instance = {};
     var xhr = xhrImpl || {};
-
-    var _onreadystatechange = onreadystatechange || function() {};
-    var _onprogress = onprogress || function() {};
-    var _onloadend = onloadend || function() {};
-
-    Object.defineProperty(instance, "onreadystatechange", {
-        get: function() {
-            return xhr.onreadystatechange;
-        },
-        set: function(handler) {
-            _onreadystatechange(handler);
-        }
-    });
-
-    Object.defineProperty(instance, "onprogress", {
-        get: function() {
-            return xhr.onprogress;
-        },
-        set: function(handler) {
-            _onprogress(handler);
-        }
-    });
-
-    Object.defineProperty(instance, "onloadend", {
-        get: function() {
-            return xhr.onloadend;
-        },
-        set: function(handler) {
-            _onloadend(handler);
-        }
-    });
 
     objectMirrors.mirrorRwProp(instance, xhr, "responseType");
     objectMirrors.mirrorRwProp(instance, xhr, "timeout");
@@ -58,6 +27,20 @@ var BaseXHR = function(xhrImpl, onreadystatechange, onprogress, onloadend) {
     objectMirrors.mirrorFunc(instance, xhr, "getResponseHeader");
     objectMirrors.mirrorFunc(instance, xhr, "overrideMimeType");
     objectMirrors.mirrorFunc(instance, xhr, "getAllResponseHeaders");
+
+    // EventTarget iface
+    objectMirrors.mirrorFunc(instance, xhr, "addRemoveEventListener");
+    objectMirrors.mirrorFunc(instance, xhr, "removeRemoveEventListener");
+
+    // All events as in https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+    objectMirrors.mirrorRwProp(instance, xhr, "onload");
+    objectMirrors.mirrorRwProp(instance, xhr, "onloadstart");
+    objectMirrors.mirrorRwProp(instance, xhr, "onloadend");
+    objectMirrors.mirrorRwProp(instance, xhr, "onabort");
+    objectMirrors.mirrorRwProp(instance, xhr, "onerror");
+    objectMirrors.mirrorRwProp(instance, xhr, "onprogress");
+    objectMirrors.mirrorRwProp(instance, xhr, "ontimeout");
+    objectMirrors.mirrorRwProp(instance, xhr, "onreadystatechange");
 
     return instance;
 };

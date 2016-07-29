@@ -2,6 +2,7 @@
 
 var BaseXHR = require('./base-xhr');
 var XHRShaper = require('./shaper');
+var objectMirrors = require('./object-mirrors');
 
 var WindowXHR = window.XMLHttpRequest;
 
@@ -121,12 +122,20 @@ var XMLHttpRequest = function() {
         triggerProgress(event);
     };
 
-    var instance = new BaseXHR(xhr, function(handler) {
-        _onreadystatechange = handler;
-    }, function(handler) {
-        _onprogress = handler;
-    }, function(handler) {
-        _onloadend = handler;
+    var instance = new BaseXHR(xhr);
+
+    // we need to override these with a custom setter hook
+    objectMirrors.mirrorRwProp(instance, xhr, "onreadystatechange", function(val) {
+        _onreadystatechange = val;
+        return {override: true};
+    });
+    objectMirrors.mirrorRwProp(instance, xhr, "onprogress", function(val) {
+        _onprogress = val;
+        return {override: true};
+    });
+    objectMirrors.mirrorRwProp(instance, xhr, "onloadend", function(val) {
+        _onloadend = val;
+        return {override: true};
     });
 
     instance.shaper = shaper;
