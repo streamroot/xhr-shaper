@@ -2,7 +2,7 @@
 
 var objectMirrors = require('./object-mirrors');
 
-var BaseXHR = function(xhrImpl /* , onreadystatechange, onprogress, onloadend*/) {
+var BaseXHR = function(xhrImpl) {
 
     var instance = {};
     var xhr = xhrImpl || {};
