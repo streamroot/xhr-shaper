@@ -4,12 +4,12 @@ var objectMirrors = require('./object-mirrors');
 
 var BaseXHR = function(xhrImpl, onreadystatechange, onprogress, onloadend) {
 
-	var instance = {};
-	var xhr = xhrImpl || {};
+    var instance = {};
+    var xhr = xhrImpl || {};
 
-	var _onreadystatechange = onreadystatechange || function() {};
-	var _onprogress = onprogress || function() {};
-	var _onloadend = onloadend || function() {}; 
+    var _onreadystatechange = onreadystatechange || function() {};
+    var _onprogress = onprogress || function() {};
+    var _onloadend = onloadend || function() {}; 
 
     Object.defineProperty(instance, "onreadystatechange", {
         get: function() {
