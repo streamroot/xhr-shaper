@@ -7,7 +7,8 @@
     "test": "npm run dev",
     "clean": "rm -Rf dist",
     "build": "./node_modules/.bin/webpack --entry ./index --output-file dist/build.js --output-library XHRShaper",
-    "dev": "./node_modules/.bin/webpack-dev-server --entry ./index --output-file ./index.js --output-library XHRShaper"
+    "dev": "./node_modules/.bin/webpack-dev-server --entry ./index --output-file ./index.js --output-library XHRShaper",
+    "lint": "./node_modules/.bin/eslint ."
   },
   "keywords": [
     "Network",
