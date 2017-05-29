@@ -161,6 +161,6 @@ var XMLHttpRequestShim = function() {
     return instance;
 };
 
-XMLHttpRequestShim.Shaper = XHRShaper;
+XMLHttpRequestShim.Shaper = Shaper;
 
 module.exports = XMLHttpRequestShim;
