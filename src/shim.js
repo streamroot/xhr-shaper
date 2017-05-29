@@ -23,14 +23,14 @@ var XMLHttpRequestShim = function() {
 
     xhr.onloadend = function(event) {
         loadEndEvent = event;
-        if (_onloadend && done) {
+        if (done && _onloadend) {
             _onloadend(event);
         }
     };
 
     xhr.onload = function(event) {
         loadEvent = event;
-        if (_onload && done) {
+        if (done && _onload) {
             _onload(event);
         }
     };
@@ -90,14 +90,13 @@ var XMLHttpRequestShim = function() {
                         }
 
                     }, Math.max(delay1, delay2));
-                    break;
+                } else {
+                    console.log('not delaying');
+                    done = true;
+                    triggerStateChange(event);
                 }
-
-                triggerStateChange(event);
-
                 break;
         }
-
     };
 
     xhr.onprogress = function(event) {
