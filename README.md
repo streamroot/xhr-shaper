@@ -9,9 +9,7 @@ Shapes your XHR requests to a max emulated bandwidth and latency, randomizes fre
 
 As global/window shim
 ```
-var XHRShaper = require('xhr-shaper');
-
-XHRShaper.useGlobal();
+require('xhr-shaper').useGlobal();
 
 // now XMLHttpRequest object is the shim
 ```
@@ -22,7 +20,7 @@ Or in a modular way
 ```
 var XHRShaper = require('xhr-shaper');
 
-var xhr = XHRShaper.XMLHttpRequest; 
+var xhr = new XHRShaper.XMLHttpRequest(); 
 ```
 
 NOTE: XHRShaper module exposes some fancy undocumented stuff like `BaseXHR` and `objectMirrors`. These might be moved into their own package in the future.

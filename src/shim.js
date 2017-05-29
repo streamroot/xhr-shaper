@@ -1,15 +1,15 @@
 // This will shim the XHR object in your window and add some custom functionnality on top in the Shaper object
 
 var BaseXHR = require('./base-xhr');
-var XHRShaper = require('./shaper');
+var Shaper = require('./shaper');
 var objectMirrors = require('./object-mirrors');
 
 var WindowXHR = window.XMLHttpRequest;
 
-var XMLHttpRequest = function() {
+var XMLHttpRequestShim = function() {
     var xhr = new WindowXHR();
-    var shaper = new XHRShaper();
-    var _onreadystatechange, _onprogress, _onloadend, _onload;
+    var shaper = new Shaper();
+    var _onreadystatechange, _onprogress, _onloadend;
 
     var openedTs, headersTs, loadingTs, doneTs;
     var loaded = 0, total;
@@ -161,6 +161,6 @@ var XMLHttpRequest = function() {
     return instance;
 };
 
-XMLHttpRequest.Shaper = XHRShaper;
+XMLHttpRequestShim.Shaper = XHRShaper;
 
-module.exports = XMLHttpRequest;
+module.exports = XMLHttpRequestShim;
