@@ -9,7 +9,7 @@ var WindowXHR = window.XMLHttpRequest;
 var XMLHttpRequest = function() {
     var xhr = new WindowXHR();
     var shaper = new XHRShaper();
-    var _onreadystatechange, _onprogress, _onloadend;
+    var _onreadystatechange, _onprogress, _onloadend, _onload;
 
     var openedTs, headersTs, loadingTs, doneTs;
     var loaded = 0, total;
@@ -18,12 +18,20 @@ var XMLHttpRequest = function() {
     var progressTimer;
     var lastProgressEvent = false;
     var loadEndEvent;
+    var loadEvent;
+    var done = false;
 
     xhr.onloadend = function(event) {
         loadEndEvent = event;
-
-        if (_onloadend && xhr.readyState === 4) {
+        if (_onloadend && done) {
             _onloadend(event);
+        }
+    };
+
+    xhr.onload = function(event) {
+        loadEvent = event;
+        if (_onload && done) {
+            _onload(event);
         }
     };
 
@@ -70,6 +78,12 @@ var XMLHttpRequest = function() {
                         }
 
                         triggerStateChange(event);
+
+                        done = true;
+
+                        if (loadEvent && _onload) {
+                            _onload(loadEvent);
+                        }
 
                         if (loadEndEvent && _onloadend) {
                             _onloadend(loadEndEvent);
@@ -135,6 +149,10 @@ var XMLHttpRequest = function() {
     });
     objectMirrors.mirrorRwProp(instance, xhr, "onloadend", function(val) {
         _onloadend = val;
+        return {override: true};
+    });
+    objectMirrors.mirrorRwProp(instance, xhr, "onload", function(val) {
+        _onload = val;
         return {override: true};
     });
 
