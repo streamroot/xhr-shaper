@@ -28,8 +28,8 @@
         if (xhr.readyState === 4) {
           doneTime = Date.now();
           var duration = doneTime - reqTime;
-          var bitrate = Math.round(8*total / duration);
-          console.debug('Loaded ' + total + ' bytes in ' + duration + ' ms, computed bitrate: ' + bitrate + ' kbps');
+          var bitrate = Math.round(8 * total / duration);
+          console.log('Loaded ' + total + ' bytes in ' + duration + ' ms, computed bitrate: ' + bitrate + ' kbps');
         }
       };
       xhr.onprogress = function(e) {
@@ -38,6 +38,11 @@
 
         console.log('Progress: ' + e.loaded + ' of ' + e.total);
       };
+
+      xhr.onload = function(e) {
+        console.log('Loading done');
+        //console.log(e);
+      }
 
       xhr.onloadend = function(e) {
         console.log('Loading ended');
