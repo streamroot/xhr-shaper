@@ -29,8 +29,8 @@ var BaseXHR = function(xhrImpl) {
     objectMirrors.mirrorFunc(instance, xhr, "getAllResponseHeaders");
 
     // EventTarget iface
-    objectMirrors.mirrorFunc(instance, xhr, "addRemoveEventListener");
-    objectMirrors.mirrorFunc(instance, xhr, "removeRemoveEventListener");
+    objectMirrors.mirrorFunc(instance, xhr, "addEventListener");
+    objectMirrors.mirrorFunc(instance, xhr, "removeEventListener");
 
     // All events as in https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
     objectMirrors.mirrorRwProp(instance, xhr, "onload");

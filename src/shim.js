@@ -9,7 +9,9 @@ var WindowXHR = window.XMLHttpRequest;
 var XMLHttpRequestShim = function() {
     var xhr = new WindowXHR();
     var shaper = new Shaper();
-    var _onreadystatechange, _onprogress, _onloadend;
+    var _onreadystatechange, 
+        _onprogress, 
+        _onloadend;
 
     var openedTs, headersTs, loadingTs, doneTs;
     var loaded = 0, total;
@@ -30,7 +32,7 @@ var XMLHttpRequestShim = function() {
 
     xhr.onload = function(event) {
         loadEvent = event;
-        if (done && _onload) {
+        if (done && _onload && xhr.readyState === 4) {
             _onload(event);
         }
     };
@@ -83,10 +85,12 @@ var XMLHttpRequestShim = function() {
 
                         if (loadEvent && _onload) {
                             _onload(loadEvent);
+                            loadEvent = null;
                         }
 
                         if (loadEndEvent && _onloadend) {
                             _onloadend(loadEndEvent);
+                            loadEndEvent = null;
                         }
 
                     }, Math.max(delay1, delay2));
@@ -156,6 +160,14 @@ var XMLHttpRequestShim = function() {
     });
 
     instance.shaper = shaper;
+
+    var id = Math.round(Math.random() * 1e6);
+
+    console.log('id:', id);
+
+    xhr.id = id;
+    instance.id = id;
+    instance.innerXhr = xhr;
 
     return instance;
 };
