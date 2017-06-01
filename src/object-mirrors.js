@@ -1,5 +1,3 @@
-'use strict';
-
 var ERROR_SOURCE_PROPERTY_NOT_IMPLEMENTED = 'Requiring undefined property on source object';
 
 function checkProperty(source, prop) {

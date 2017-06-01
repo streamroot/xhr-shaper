@@ -1,17 +1,17 @@
 // This will shim the XHR object in your window and add some custom functionnality on top in the Shaper object
 
-var BaseXHR = require('./base-xhr');
-var Shaper = require('./shaper');
-var objectMirrors = require('./object-mirrors');
+import XHRProxy from './xhr';
+import Shaper from './shaper';
 
-var WindowXHR = window.XMLHttpRequest;
+function bootstrapXhr(xhr, xhrProxy) {
 
-var XMLHttpRequestShim = function() {
-    var xhr = new WindowXHR();
-    var shaper = new Shaper();
-    var _onreadystatechange, 
-        _onprogress, 
-        _onloadend;
+    var {
+        shaper,
+        _onload, 
+        _onloadend, 
+        _onreadystatechange, 
+        _onprogress
+    } = xhrProxy;
 
     var openedTs, headersTs, loadingTs, doneTs;
     var loaded = 0, total;
@@ -24,6 +24,16 @@ var XMLHttpRequestShim = function() {
     var done = false;
 
     xhr.onloadend = function(event) {
+
+        var {
+            shaper,
+            _onload, 
+            _onloadend, 
+            _onreadystatechange, 
+            _onprogress
+        } = xhrProxy;
+
+        console.log('native loadend');
         loadEndEvent = event;
         if (done && _onloadend) {
             _onloadend(event);
@@ -31,6 +41,16 @@ var XMLHttpRequestShim = function() {
     };
 
     xhr.onload = function(event) {
+
+        var {
+            shaper,
+            _onload, 
+            _onloadend, 
+            _onreadystatechange, 
+            _onprogress
+        } = xhrProxy;
+
+        console.log('native load');
         loadEvent = event;
         if (done && _onload && xhr.readyState === 4) {
             _onload(event);
@@ -38,6 +58,14 @@ var XMLHttpRequestShim = function() {
     };
 
     xhr.onreadystatechange = function(event) {
+
+        var {
+            shaper,
+            _onload, 
+            _onloadend, 
+            _onreadystatechange, 
+            _onprogress
+        } = xhrProxy;
 
         function triggerStateChange(e) {
             if (_onreadystatechange) {
@@ -95,7 +123,7 @@ var XMLHttpRequestShim = function() {
 
                     }, Math.max(delay1, delay2));
                 } else {
-                    console.log('not delaying');
+                    console.log('done, not delaying');
                     done = true;
                     triggerStateChange(event);
                 }
@@ -104,6 +132,14 @@ var XMLHttpRequestShim = function() {
     };
 
     xhr.onprogress = function(event) {
+
+        var {
+            shaper,
+            _onload, 
+            _onloadend, 
+            _onreadystatechange, 
+            _onprogress
+        } = xhrProxy;
 
         function triggerProgress(e) {
 
@@ -139,39 +175,71 @@ var XMLHttpRequestShim = function() {
         triggerProgress(event);
     };
 
-    var instance = new BaseXHR(xhr);
-
-    // we need to override these with a custom setter hook
-    objectMirrors.mirrorRwProp(instance, xhr, "onreadystatechange", function(val) {
-        _onreadystatechange = val;
-        return {override: true};
-    });
-    objectMirrors.mirrorRwProp(instance, xhr, "onprogress", function(val) {
-        _onprogress = val;
-        return {override: true};
-    });
-    objectMirrors.mirrorRwProp(instance, xhr, "onloadend", function(val) {
-        _onloadend = val;
-        return {override: true};
-    });
-    objectMirrors.mirrorRwProp(instance, xhr, "onload", function(val) {
-        _onload = val;
-        return {override: true};
-    });
-
-    instance.shaper = shaper;
-
     var id = Math.round(Math.random() * 1e6);
 
-    console.log('id:', id);
-
     xhr.id = id;
-    instance.id = id;
-    instance.innerXhr = xhr;
+}
 
-    return instance;
-};
+class XHR extends XHRProxy {
 
-XMLHttpRequestShim.Shaper = Shaper;
+    static get Shaper() {
+        return Shaper;
+    }
 
-module.exports = XMLHttpRequestShim;
+    constructor() {
+        super();
+        this._shaper = new Shaper();
+
+        bootstrapXhr(this._xhr, this);
+    }
+
+    addEventListener() {
+        throw new Error('EventTarget API not implemented');
+    }
+
+    removeEventListener() {
+        throw new Error('EventTarget API not implemented');
+    }
+
+    dispatchEvent() {
+        throw new Error('EventTarget API not implemented');
+    }
+
+    get shaper() {
+        return this._shaper;
+    }
+
+    set onloadend(fn) {
+        this._onloadend = fn;
+    }
+
+    get onloadend() {
+        return this._onloadend;
+    }
+
+    set onload(fn) {
+        this._onload = fn;
+    }
+
+    get onload() {
+        return this._onload;
+    }
+
+    set onreadystatechange(fn) {
+        this._onreadystatechange = fn;
+    }
+
+    get onreadystatechange() {
+        return this._onreadystatechange;
+    }
+
+    set onprogress(fn) {
+        this._onprogress = fn;
+    }
+
+    get onprogress() {
+        return this._onprogress;
+    }
+}
+
+export default XHR;
