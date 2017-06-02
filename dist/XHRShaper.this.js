@@ -425,7 +425,6 @@ function useGlobal() {
 
 module.exports = {
     XHRProxy: _xhr2.default,
-    XHR: XHR,
     useGlobal: useGlobal
 };
 
@@ -468,8 +467,8 @@ function initThrottledXhr(xhr, xhrProxy) {
             _onreadystatechange = xhrProxy._onreadystatechange,
             _onprogress = xhrProxy._onprogress;
 
+        //console.log('native loadend');
 
-        console.log('native loadend');
         loadEndEvent = event;
         if (done && _onloadend) {
             _onloadend(event);
@@ -483,8 +482,8 @@ function initThrottledXhr(xhr, xhrProxy) {
             _onreadystatechange = xhrProxy._onreadystatechange,
             _onprogress = xhrProxy._onprogress;
 
+        //console.log('native load');
 
-        console.log('native load');
         loadEvent = event;
         if (done && _onload && xhr.readyState === 4) {
             _onload(event);
@@ -560,7 +559,7 @@ function initThrottledXhr(xhr, xhrProxy) {
                         }
                     }, Math.max(delay1, delay2));
                 } else {
-                    console.log('done, not delaying');
+                    //console.log('done, not delaying');
                     done = true;
                     triggerStateChange(event);
                 }
@@ -612,8 +611,8 @@ function initThrottledXhr(xhr, xhrProxy) {
 
     var id = Math.round(Math.random() * 1e6);
 
-    xhr._id = id;
-    xhrProxy._id = id;
+    xhr.__throttledId = id;
+    xhrProxy.__throttledId = id;
 }
 
 exports.default = initThrottledXhr;
