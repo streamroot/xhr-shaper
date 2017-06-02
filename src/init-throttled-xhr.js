@@ -1,11 +1,6 @@
-// This will shim the XHR object in your window and add some custom functionnality on top in the Shaper object
+function initThrottledXhr(xhr, xhrProxy) {
 
-import XHRProxy from './xhr';
-import Shaper from './shaper';
-
-function bootstrapXhr(xhr, xhrProxy) {
-
-    var {
+    let {
         shaper,
         _onload, 
         _onloadend, 
@@ -13,19 +8,19 @@ function bootstrapXhr(xhr, xhrProxy) {
         _onprogress
     } = xhrProxy;
 
-    var openedTs, headersTs, loadingTs, doneTs;
-    var loaded = 0, total;
-    var currentBitrateKpbs;
-    var progressEvents = [];
-    var progressTimer;
-    var lastProgressEvent = false;
-    var loadEndEvent;
-    var loadEvent;
-    var done = false;
+    let openedTs, headersTs, loadingTs, doneTs;
+    let loaded = 0, total;
+    let currentBitrateKpbs;
+    let progressEvents = [];
+    let progressTimer;
+    let lastProgressEvent = false;
+    let loadEndEvent;
+    let loadEvent;
+    let done = false;
 
     xhr.onloadend = function(event) {
 
-        var {
+        let {
             shaper,
             _onload, 
             _onloadend, 
@@ -33,7 +28,7 @@ function bootstrapXhr(xhr, xhrProxy) {
             _onprogress
         } = xhrProxy;
 
-        console.log('native loadend');
+        //console.log('native loadend');
         loadEndEvent = event;
         if (done && _onloadend) {
             _onloadend(event);
@@ -42,7 +37,7 @@ function bootstrapXhr(xhr, xhrProxy) {
 
     xhr.onload = function(event) {
 
-        var {
+        let {
             shaper,
             _onload, 
             _onloadend, 
@@ -50,7 +45,7 @@ function bootstrapXhr(xhr, xhrProxy) {
             _onprogress
         } = xhrProxy;
 
-        console.log('native load');
+        //console.log('native load');
         loadEvent = event;
         if (done && _onload && xhr.readyState === 4) {
             _onload(event);
@@ -59,7 +54,7 @@ function bootstrapXhr(xhr, xhrProxy) {
 
     xhr.onreadystatechange = function(event) {
 
-        var {
+        let {
             shaper,
             _onload, 
             _onloadend, 
@@ -90,9 +85,9 @@ function bootstrapXhr(xhr, xhrProxy) {
                 triggerStateChange(event);
                 break;
             case 4: // DONE
-                var delay1 = 0, delay2 = 0;
+                let delay1 = 0, delay2 = 0;
                 doneTs = Date.now();
-                var latency = doneTs - openedTs;
+                let latency = doneTs - openedTs;
                 if (latency < shaper.minLatency) {
                     delay1 = shaper.minLatency - latency;
                 }
@@ -123,7 +118,7 @@ function bootstrapXhr(xhr, xhrProxy) {
 
                     }, Math.max(delay1, delay2));
                 } else {
-                    console.log('done, not delaying');
+                    //console.log('done, not delaying');
                     done = true;
                     triggerStateChange(event);
                 }
@@ -133,7 +128,7 @@ function bootstrapXhr(xhr, xhrProxy) {
 
     xhr.onprogress = function(event) {
 
-        var {
+        let {
             shaper,
             _onload, 
             _onloadend, 
@@ -152,9 +147,9 @@ function bootstrapXhr(xhr, xhrProxy) {
             }
         }
 
-        var now = Date.now();
-        var duration = now - openedTs;
-        var delay;
+        let now = Date.now();
+        let duration = now - openedTs;
+        let delay;
 
         loaded = event.loaded;
         total = event.total;
@@ -175,71 +170,10 @@ function bootstrapXhr(xhr, xhrProxy) {
         triggerProgress(event);
     };
 
-    var id = Math.round(Math.random() * 1e6);
+    let id = Math.round(Math.random() * 1e6);
 
-    xhr.id = id;
+    xhr.__throttledId = id;
+    xhrProxy.__throttledId = id;
 }
 
-class XHR extends XHRProxy {
-
-    static get Shaper() {
-        return Shaper;
-    }
-
-    constructor() {
-        super();
-        this._shaper = new Shaper();
-
-        bootstrapXhr(this._xhr, this);
-    }
-
-    addEventListener() {
-        throw new Error('EventTarget API not implemented');
-    }
-
-    removeEventListener() {
-        throw new Error('EventTarget API not implemented');
-    }
-
-    dispatchEvent() {
-        throw new Error('EventTarget API not implemented');
-    }
-
-    get shaper() {
-        return this._shaper;
-    }
-
-    set onloadend(fn) {
-        this._onloadend = fn;
-    }
-
-    get onloadend() {
-        return this._onloadend;
-    }
-
-    set onload(fn) {
-        this._onload = fn;
-    }
-
-    get onload() {
-        return this._onload;
-    }
-
-    set onreadystatechange(fn) {
-        this._onreadystatechange = fn;
-    }
-
-    get onreadystatechange() {
-        return this._onreadystatechange;
-    }
-
-    set onprogress(fn) {
-        this._onprogress = fn;
-    }
-
-    get onprogress() {
-        return this._onprogress;
-    }
-}
-
-export default XHR;
+export default initThrottledXhr;

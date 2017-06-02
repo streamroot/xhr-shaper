@@ -1,15 +1,14 @@
 import XHRProxy from './src/xhr';
-import XHR from './src/shim';
+import ThrottledXHR from './src/throttled-xhr';
 
 function useGlobal() {
     // Shim window/global XHR
     var global = window || global;
     // Overload native window constructor
-    global.XMLHttpRequest = XHR;
+    global.XMLHttpRequest = ThrottledXHR;
 }
 
 module.exports = {
     XHRProxy,
-    XHR,
     useGlobal
 };
