@@ -433,6 +433,7 @@ function useGlobal() {
 }
 
 module.exports = {
+    XMLHttpRequest: _throttledXhr2.default,
     ThrottledXHR: _throttledXhr2.default,
     XHRProxy: _xhr2.default,
     useGlobal: useGlobal

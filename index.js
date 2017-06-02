@@ -9,6 +9,7 @@ function useGlobal() {
 }
 
 module.exports = {
+    XMLHttpRequest: ThrottledXHR,
     ThrottledXHR,
     XHRProxy,
     useGlobal
