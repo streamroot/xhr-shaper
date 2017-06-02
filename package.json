@@ -1,6 +1,6 @@
 {
   "name": "xhr-shaper",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Shapes your XHR requests to a max emulated bandwidth and latency, randomizes frequency of progress events",
   "main": "index.js",
   "scripts": {
