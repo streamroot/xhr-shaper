@@ -131,19 +131,19 @@ var XHRProxy = function () {
             return this._xhr.getAllResponseHeaders();
         }
     }, {
-        key: "dispatchEvent",
-        value: function dispatchEvent(type) {
-            return this._xhr.dispatchEvent(type);
-        }
-    }, {
         key: "addEventListener",
-        value: function addEventListener(type, handler) {
-            return this._xhr.addEventListener(type, handler);
+        value: function addEventListener(type, listener, optionsOrUseCapture, wantsUntrusted) {
+            return this._xhr.addEventListener(type, listener, optionsOrUseCapture, wantsUntrusted);
         }
     }, {
         key: "removeEventListener",
-        value: function removeEventListener(type, handler) {
-            return this._xhr.removeEventListener(type, handler);
+        value: function removeEventListener(type, listener, optionsOrUseCapture) {
+            return this._xhr.removeEventListener(type, listener, optionsOrUseCapture);
+        }
+    }, {
+        key: "dispatchEvent",
+        value: function dispatchEvent(event) {
+            return this._xhr.dispatchEvent(event);
         }
 
         // Read-only properties
@@ -297,6 +297,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _xhr = __webpack_require__(0);
@@ -307,9 +309,9 @@ var _shaper = __webpack_require__(4);
 
 var _shaper2 = _interopRequireDefault(_shaper);
 
-var _initThrottledXhr = __webpack_require__(3);
+var _setupThrottledXhr = __webpack_require__(3);
 
-var _initThrottledXhr2 = _interopRequireDefault(_initThrottledXhr);
+var _setupThrottledXhr2 = _interopRequireDefault(_setupThrottledXhr);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -318,6 +320,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var PASSTHROUGH_EVENTS = ['loadstart', 'timeout', 'abort', 'error'];
+
+var createListenerWrapper = function createListenerWrapper(type, listener, dispatchedEventsList) {
+    return function (event) {
+        dispatchedEventsList.push({ type: type, listener: listener, event: event, propagated: false });
+    };
+};
 
 var ThrottledXHR = function (_XHRProxy) {
     _inherits(ThrottledXHR, _XHRProxy);
@@ -335,25 +345,60 @@ var ThrottledXHR = function (_XHRProxy) {
         var _this = _possibleConstructorReturn(this, (ThrottledXHR.__proto__ || Object.getPrototypeOf(ThrottledXHR)).call(this));
 
         _this._shaper = new _shaper2.default();
+        _this._listenersMap = new Map();
+        _this._dispatchedEventsList = [];
 
-        (0, _initThrottledXhr2.default)(_this._xhr, _this);
+        (0, _setupThrottledXhr2.default)(_this._xhr, _this);
         return _this;
     }
 
     _createClass(ThrottledXHR, [{
+        key: '_dispatchWrappedEventType',
+        value: function _dispatchWrappedEventType(type) {
+            var _this2 = this;
+
+            // it needs to run on the next tick since this is actually
+            // triggered from our throttler listeners on the proxy's inner XHR 
+            setTimeout(function () {
+                _this2._dispatchedEventsList.filter(function (dispatchedEvent) {
+                    return dispatchedEvent.type === type && !dispatchedEvent.propagated;
+                }).forEach(function (dispatchedEvent) {
+                    dispatchedEvent.propagated = true;
+                    dispatchedEvent.listener(dispatchedEvent.event);
+                });
+            }, 0);
+        }
+    }, {
         key: 'addEventListener',
-        value: function addEventListener() {
-            throw new Error('EventTarget API not implemented');
+        value: function addEventListener(type, listener, optionsOrUseCapture, wantsUntrusted) {
+
+            if (PASSTHROUGH_EVENTS.includes(type)) {
+                return _get(ThrottledXHR.prototype.__proto__ || Object.getPrototypeOf(ThrottledXHR.prototype), 'addEventListener', this).call(this, type, listener, optionsOrUseCapture, wantsUntrusted);
+            }
+
+            var listenerWrapper = createListenerWrapper(type, listener, this._dispatchedEventsList);
+            this._listenersMap.set(listener, listenerWrapper);
+            return _get(ThrottledXHR.prototype.__proto__ || Object.getPrototypeOf(ThrottledXHR.prototype), 'addEventListener', this).call(this, type, listenerWrapper, optionsOrUseCapture, wantsUntrusted);
         }
     }, {
         key: 'removeEventListener',
-        value: function removeEventListener() {
-            throw new Error('EventTarget API not implemented');
+        value: function removeEventListener(type, listener, optionsOrUseCapture) {
+
+            if (PASSTHROUGH_EVENTS.includes(type)) {
+                return _get(ThrottledXHR.prototype.__proto__ || Object.getPrototypeOf(ThrottledXHR.prototype), 'removeEventListener', this).call(this, type, listener, optionsOrUseCapture);
+            }
+
+            var listenerWrapper = this._listenersMap.get(listener);
+            if (!listenerWrapper) {
+                return;
+            }
+            this._listenersMap.delete(listener);
+            return _get(ThrottledXHR.prototype.__proto__ || Object.getPrototypeOf(ThrottledXHR.prototype), 'removeEventListener', this).call(this, type, listenerWrapper, optionsOrUseCapture);
         }
     }, {
         key: 'dispatchEvent',
-        value: function dispatchEvent() {
-            throw new Error('EventTarget API not implemented');
+        value: function dispatchEvent(event) {
+            return _get(ThrottledXHR.prototype.__proto__ || Object.getPrototypeOf(ThrottledXHR.prototype), 'dispatchEvent', this).call(this, event);
         }
     }, {
         key: 'shaper',
@@ -440,12 +485,8 @@ module.exports = {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-function initThrottledXhr(xhr, xhrProxy) {
-    var shaper = xhrProxy.shaper,
-        _onload = xhrProxy._onload,
-        _onloadend = xhrProxy._onloadend,
-        _onreadystatechange = xhrProxy._onreadystatechange,
-        _onprogress = xhrProxy._onprogress;
+function setupThrottledXhr(xhr, xhrProxy) {
+    var shaper = xhrProxy.shaper;
 
 
     var openedTs = void 0,
@@ -463,47 +504,39 @@ function initThrottledXhr(xhr, xhrProxy) {
     var done = false;
 
     xhr.onloadend = function (event) {
-        var shaper = xhrProxy.shaper,
-            _onload = xhrProxy._onload,
-            _onloadend = xhrProxy._onloadend,
-            _onreadystatechange = xhrProxy._onreadystatechange,
-            _onprogress = xhrProxy._onprogress;
+        var _onloadend = xhrProxy._onloadend;
 
         //console.log('native loadend');
 
         loadEndEvent = event;
-        if (done && _onloadend) {
-            _onloadend(event);
+        if (done) {
+            _onloadend && _onloadend(event);
+            xhrProxy._dispatchWrappedEventType('loadend');
         }
     };
 
     xhr.onload = function (event) {
-        var shaper = xhrProxy.shaper,
-            _onload = xhrProxy._onload,
-            _onloadend = xhrProxy._onloadend,
-            _onreadystatechange = xhrProxy._onreadystatechange,
-            _onprogress = xhrProxy._onprogress;
+        var _onload = xhrProxy._onload;
 
         //console.log('native load');
 
         loadEvent = event;
-        if (done && _onload && xhr.readyState === 4) {
-            _onload(event);
+        if (done && xhr.readyState === 4) {
+            _onload && _onload(event);
+            xhrProxy._dispatchWrappedEventType('load');
         }
     };
 
     xhr.onreadystatechange = function (event) {
-        var shaper = xhrProxy.shaper,
+        var _onreadystatechange = xhrProxy._onreadystatechange,
+            _onprogress = xhrProxy._onprogress,
             _onload = xhrProxy._onload,
-            _onloadend = xhrProxy._onloadend,
-            _onreadystatechange = xhrProxy._onreadystatechange,
-            _onprogress = xhrProxy._onprogress;
+            _onloadend = xhrProxy._onloadend;
 
 
         function triggerStateChange(e) {
-            if (_onreadystatechange) {
-                _onreadystatechange(e);
-            }
+            _onreadystatechange && _onreadystatechange(e);
+            xhrProxy._dispatchWrappedEventType('readystatechange');
         }
 
         switch (xhr.readyState) {
@@ -543,20 +576,23 @@ function initThrottledXhr(xhr, xhrProxy) {
 
                         if (loaded === total && !lastProgressEvent) {
                             clearTimeout(progressTimer);
-                            _onprogress(progressEvents[progressEvents.length - 1]);
+                            _onprogress && _onprogress(progressEvents[progressEvents.length - 1]);
+                            xhrProxy._dispatchWrappedEventType('progress');
                         }
 
                         triggerStateChange(event);
 
                         done = true;
 
-                        if (loadEvent && _onload) {
-                            _onload(loadEvent);
+                        if (loadEvent) {
+                            _onload && _onload(loadEvent);
+                            xhrProxy._dispatchWrappedEventType('load');
                             loadEvent = null;
                         }
 
-                        if (loadEndEvent && _onloadend) {
-                            _onloadend(loadEndEvent);
+                        if (loadEndEvent) {
+                            _onloadend && _onloadend(loadEndEvent);
+                            xhrProxy._dispatchWrappedEventType('loadend');
                             loadEndEvent = null;
                         }
                     }, Math.max(delay1, delay2));
@@ -570,11 +606,7 @@ function initThrottledXhr(xhr, xhrProxy) {
     };
 
     xhr.onprogress = function (event) {
-        var shaper = xhrProxy.shaper,
-            _onload = xhrProxy._onload,
-            _onloadend = xhrProxy._onloadend,
-            _onreadystatechange = xhrProxy._onreadystatechange,
-            _onprogress = xhrProxy._onprogress;
+        var _onprogress = xhrProxy._onprogress;
 
 
         function triggerProgress(e) {
@@ -583,9 +615,8 @@ function initThrottledXhr(xhr, xhrProxy) {
                 lastProgressEvent = true;
             }
 
-            if (_onprogress) {
-                _onprogress(e);
-            }
+            _onprogress && _onprogress(e);
+            xhrProxy._dispatchWrappedEventType('progress');
         }
 
         var now = Date.now();
@@ -617,7 +648,7 @@ function initThrottledXhr(xhr, xhrProxy) {
     xhrProxy.__throttledId = id;
 }
 
-exports.default = initThrottledXhr;
+exports.default = setupThrottledXhr;
 
 /***/ }),
 /* 4 */
