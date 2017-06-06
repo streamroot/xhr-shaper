@@ -13,7 +13,13 @@ describe('xhr-shim', function() {
   this.timeout(timeout);
 
   before(function() {
-    XHRShaper.useGlobal();
+      XHRShaper.useGlobal();
+  });
+
+  afterEach(function() {
+      // just make sure to reset to default this in case it was modified in tests
+      XMLHttpRequest.Shaper.minLatency = 0;
+      XMLHttpRequest.Shaper.maxBandwidth = Infinity;
   });
 
   it('should have a shaper instance', function() {
@@ -86,5 +92,36 @@ describe('xhr-shim', function() {
       incrDone();
     });
 
+  });
+
+  it('should allow to use listeners on XHR EventTarget API', function(done) {
+
+    var xhr = new XMLHttpRequest();
+    var url = barUrl;
+
+    xhr.addEventListener('loadend', function() {
+      done();
+    });
+    xhr.open('GET', url, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.send();
+  });
+
+  it('should allow to use listeners on XHR EventTarget API (with throttling)', function(done) {
+
+    var startTime = Date.now();
+    var xhr = new XMLHttpRequest();
+    var url = bigChunkUrl;
+
+    xhr.shaper.minLatency = 2000;
+    xhr.shaper.maxBandwidth = 1024;
+
+    xhr.addEventListener('loadend', function() {
+      console.log('done in ', Date.now() - startTime, ' ms');
+      done();
+    });
+    xhr.open('GET', url, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.send();
   });
 });

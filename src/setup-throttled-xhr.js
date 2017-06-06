@@ -1,11 +1,7 @@
-function initThrottledXhr(xhr, xhrProxy) {
+function setupThrottledXhr(xhr, xhrProxy) {
 
     let {
-        shaper,
-        _onload, 
-        _onloadend, 
-        _onreadystatechange, 
-        _onprogress
+        shaper
     } = xhrProxy;
 
     let openedTs, headersTs, loadingTs, doneTs;
@@ -21,51 +17,43 @@ function initThrottledXhr(xhr, xhrProxy) {
     xhr.onloadend = function(event) {
 
         let {
-            shaper,
-            _onload, 
-            _onloadend, 
-            _onreadystatechange, 
-            _onprogress
+            _onloadend
         } = xhrProxy;
 
         //console.log('native loadend');
         loadEndEvent = event;
-        if (done && _onloadend) {
-            _onloadend(event);
+        if (done) {
+            _onloadend && _onloadend(event);
+            xhrProxy._dispatchWrappedEventType('loadend');
         }
     };
 
     xhr.onload = function(event) {
 
         let {
-            shaper,
-            _onload, 
-            _onloadend, 
-            _onreadystatechange, 
-            _onprogress
+            _onload 
         } = xhrProxy;
 
         //console.log('native load');
         loadEvent = event;
-        if (done && _onload && xhr.readyState === 4) {
-            _onload(event);
+        if (done && xhr.readyState === 4) {
+            _onload && _onload(event);
+            xhrProxy._dispatchWrappedEventType('load');
         }
     };
 
     xhr.onreadystatechange = function(event) {
 
         let {
-            shaper,
-            _onload, 
-            _onloadend, 
-            _onreadystatechange, 
-            _onprogress
+            _onreadystatechange,
+            _onprogress,
+            _onload,
+            _onloadend
         } = xhrProxy;
 
         function triggerStateChange(e) {
-            if (_onreadystatechange) {
-                _onreadystatechange(e);
-            }
+            _onreadystatechange && _onreadystatechange(e);
+            xhrProxy._dispatchWrappedEventType('readystatechange');
         }
 
         switch (xhr.readyState) {
@@ -99,20 +87,23 @@ function initThrottledXhr(xhr, xhrProxy) {
 
                         if (loaded === total && !lastProgressEvent) {
                             clearTimeout(progressTimer);
-                            _onprogress(progressEvents[progressEvents.length - 1]);
+                            _onprogress && _onprogress(progressEvents[progressEvents.length - 1]);
+                            xhrProxy._dispatchWrappedEventType('progress');
                         }
 
                         triggerStateChange(event);
 
                         done = true;
 
-                        if (loadEvent && _onload) {
-                            _onload(loadEvent);
+                        if (loadEvent) {
+                            _onload && _onload(loadEvent);
+                            xhrProxy._dispatchWrappedEventType('load');
                             loadEvent = null;
                         }
 
-                        if (loadEndEvent && _onloadend) {
-                            _onloadend(loadEndEvent);
+                        if (loadEndEvent) {
+                            _onloadend && _onloadend(loadEndEvent);
+                            xhrProxy._dispatchWrappedEventType('loadend');
                             loadEndEvent = null;
                         }
 
@@ -129,10 +120,6 @@ function initThrottledXhr(xhr, xhrProxy) {
     xhr.onprogress = function(event) {
 
         let {
-            shaper,
-            _onload, 
-            _onloadend, 
-            _onreadystatechange, 
             _onprogress
         } = xhrProxy;
 
@@ -142,9 +129,8 @@ function initThrottledXhr(xhr, xhrProxy) {
                 lastProgressEvent = true;
             }
 
-            if (_onprogress) {
-                _onprogress(e);
-            }
+            _onprogress && _onprogress(e);
+            xhrProxy._dispatchWrappedEventType('progress');
         }
 
         let now = Date.now();
@@ -176,4 +162,4 @@ function initThrottledXhr(xhr, xhrProxy) {
     xhrProxy.__throttledId = id;
 }
 
-export default initThrottledXhr;
+export default setupThrottledXhr;

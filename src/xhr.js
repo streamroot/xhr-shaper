@@ -32,14 +32,14 @@ class XHRProxy {
         return this._xhr.getAllResponseHeaders();
     }
 
-    dispatchEvent(type) {
-        return this._xhr.dispatchEvent(type);
+    addEventListener(type, listener, optionsOrUseCapture, wantsUntrusted) {
+        return this._xhr.addEventListener(type, listener, optionsOrUseCapture, wantsUntrusted);
     }
-    addEventListener(type, handler) {
-        return this._xhr.addEventListener(type, handler);
+    removeEventListener(type, listener, optionsOrUseCapture) {
+        return this._xhr.removeEventListener(type, listener, optionsOrUseCapture);
     }
-    removeEventListener(type, handler) {
-        return this._xhr.removeEventListener(type, handler);
+    dispatchEvent(event) {
+        return this._xhr.dispatchEvent(event);
     }
 
     // Read-only properties

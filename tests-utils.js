@@ -1,5 +1,5 @@
 function makeRequest(url, done, minLatency, maxBandwidth) {
-  var loaded, total;
+  var loaded, total, doneTime;
 
   console.log('url:', url);
 
@@ -56,7 +56,7 @@ function makeRequest(url, done, minLatency, maxBandwidth) {
   console.debug('Max bandwidth: ' + xhr.shaper.maxBandwidth);
   console.debug('Min latency: ' + xhr.shaper.minLatency);
 
-  var reqTime = Date.now(), doneTime;
+  var reqTime = Date.now();
 
   xhr.send();
 
