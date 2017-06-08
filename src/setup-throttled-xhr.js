@@ -37,6 +37,7 @@ function setupThrottledXhr(xhr, xhrProxy) {
         //console.log('native load');
         loadEvent = event;
         if (done && xhr.readyState === 4) {
+            xhrProxy._setupWrappedResponseData();
             _onload && _onload(event);
             xhrProxy._dispatchWrappedEventType('load');
         }
@@ -51,26 +52,32 @@ function setupThrottledXhr(xhr, xhrProxy) {
             _onloadend
         } = xhrProxy;
 
-        function triggerStateChange(e) {
+        function triggerStateChange(e, readyState) {
+            if (typeof readyState !== 'number') {
+                throw new Error('readyState should be a number');
+            }
+
+            xhrProxy._readyState = readyState;
             _onreadystatechange && _onreadystatechange(e);
             xhrProxy._dispatchWrappedEventType('readystatechange');
         }
 
         switch (xhr.readyState) {
             case 0: // UNSENT
-                triggerStateChange(event);
+                triggerStateChange(event, 0);
                 break;
             case 1: // OPENED
                 openedTs = Date.now();
-                triggerStateChange(event);
+                triggerStateChange(event, 1);
                 break;
             case 2: // HEADERS_RECEIVE
                 headersTs = Date.now();
-                triggerStateChange(event);
+                xhrProxy._setupWrappedHeaders();
+                triggerStateChange(event, 2);
                 break;
             case 3: // LOADING
                 loadingTs = Date.now();
-                triggerStateChange(event);
+                triggerStateChange(event, 3);
                 break;
             case 4: // DONE
                 let delay1 = 0, delay2 = 0;
@@ -91,11 +98,12 @@ function setupThrottledXhr(xhr, xhrProxy) {
                             xhrProxy._dispatchWrappedEventType('progress');
                         }
 
-                        triggerStateChange(event);
+                        triggerStateChange(event, 4);
 
                         done = true;
 
                         if (loadEvent) {
+                            xhrProxy._setupWrappedResponseData();
                             _onload && _onload(loadEvent);
                             xhrProxy._dispatchWrappedEventType('load');
                             loadEvent = null;
@@ -111,7 +119,8 @@ function setupThrottledXhr(xhr, xhrProxy) {
                 } else {
                     //console.log('done, not delaying');
                     done = true;
-                    triggerStateChange(event);
+                    xhrProxy._setupWrappedResponseData();
+                    triggerStateChange(event, 4);
                 }
                 break;
         }
