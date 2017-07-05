@@ -1,3 +1,11 @@
+var XHRReadyStates = {
+    UNSENT: 0,
+    OPENED: 1,
+    HEADERS_RECEIVED: 2,
+    LOADING: 3,
+    DONE: 4
+};
+
 function setupThrottledXhr(xhr, xhrProxy) {
 
     let {
@@ -5,13 +13,14 @@ function setupThrottledXhr(xhr, xhrProxy) {
     } = xhrProxy;
 
     let openedTs, headersTs, loadingTs, doneTs;
-    let loaded = 0, total;
+    let loaded = 0;
+    let total = 0;
     let currentBitrateKpbs;
     let progressEvents = [];
-    let progressTimer;
+    let progressTimer = null;
     let lastProgressEvent = false;
-    let loadEndEvent;
-    let loadEvent;
+    let loadEndEvent = null;
+    let loadEvent = null;
     let done = false;
 
     xhr.onloadend = function(event) {
@@ -20,7 +29,6 @@ function setupThrottledXhr(xhr, xhrProxy) {
             _onloadend
         } = xhrProxy;
 
-        //console.log('native loadend');
         loadEndEvent = event;
         if (done) {
             _onloadend && _onloadend(event);
@@ -36,7 +44,7 @@ function setupThrottledXhr(xhr, xhrProxy) {
 
         //console.log('native load');
         loadEvent = event;
-        if (done && xhr.readyState === 4) {
+        if (done && xhr.readyState === XHRReadyStates.DONE) {
             xhrProxy._setupWrappedResponseData();
             _onload && _onload(event);
             xhrProxy._dispatchWrappedEventType('load');
@@ -44,15 +52,14 @@ function setupThrottledXhr(xhr, xhrProxy) {
     };
 
     xhr.onreadystatechange = function(event) {
-
-        let {
+        const now = Date.now();
+        const {
             _onreadystatechange,
             _onprogress,
             _onload,
             _onloadend
         } = xhrProxy;
-
-        function triggerStateChange(e, readyState) {
+        const triggerStateChange = function(e, readyState) {
             if (typeof readyState !== 'number') {
                 throw new Error('readyState should be a number');
             }
@@ -62,27 +69,30 @@ function setupThrottledXhr(xhr, xhrProxy) {
             xhrProxy._dispatchWrappedEventType('readystatechange');
         }
 
+        let latency;
+        let delay1 = 0; 
+        let delay2 = 0;
+
         switch (xhr.readyState) {
             case 0: // UNSENT
-                triggerStateChange(event, 0);
+                triggerStateChange(event, XHRReadyStates.UNSENT);
                 break;
             case 1: // OPENED
-                openedTs = Date.now();
-                triggerStateChange(event, 1);
+                openedTs = now;
+                triggerStateChange(event, XHRReadyStates.OPENED);
                 break;
-            case 2: // HEADERS_RECEIVE
-                headersTs = Date.now();
+            case 2: // HEADERS_RECEIVED
+                headersTs = now;
                 xhrProxy._setupWrappedHeaders();
-                triggerStateChange(event, 2);
+                triggerStateChange(event, XHRReadyStates.HEADERS_RECEIVED);
                 break;
             case 3: // LOADING
-                loadingTs = Date.now();
-                triggerStateChange(event, 3);
+                loadingTs = now;
+                triggerStateChange(event, XHRReadyStates.LOADING);
                 break;
             case 4: // DONE
-                let delay1 = 0, delay2 = 0;
-                doneTs = Date.now();
-                let latency = doneTs - openedTs;
+                doneTs = now;
+                latency = doneTs - openedTs;
                 if (latency < shaper.minLatency) {
                     delay1 = shaper.minLatency - latency;
                 }
@@ -98,7 +108,7 @@ function setupThrottledXhr(xhr, xhrProxy) {
                             xhrProxy._dispatchWrappedEventType('progress');
                         }
 
-                        triggerStateChange(event, 4);
+                        triggerStateChange(event, XHRReadyStates.DONE);
 
                         done = true;
 
@@ -120,20 +130,18 @@ function setupThrottledXhr(xhr, xhrProxy) {
                     //console.log('done, not delaying');
                     done = true;
                     xhrProxy._setupWrappedResponseData();
-                    triggerStateChange(event, 4);
+                    triggerStateChange(event, XHRReadyStates.DONE);
                 }
                 break;
         }
     };
 
     xhr.onprogress = function(event) {
-
-        let {
+        const now = Date.now();
+        const {
             _onprogress
         } = xhrProxy;
-
-        function triggerProgress(e) {
-
+        const triggerProgress = function(e) {
             if (loaded === total) {
                 lastProgressEvent = true;
             }
@@ -142,7 +150,6 @@ function setupThrottledXhr(xhr, xhrProxy) {
             xhrProxy._dispatchWrappedEventType('progress');
         }
 
-        let now = Date.now();
         let duration = now - openedTs;
         let delay;
 
@@ -150,12 +157,9 @@ function setupThrottledXhr(xhr, xhrProxy) {
         total = event.total;
         currentBitrateKpbs = 8 * loaded / duration; // kbps
 
-        // console.log('current bitrate: ' + Math.round(currentBitrateKpbs) + ' kbps');
-
         if (currentBitrateKpbs > shaper.maxBandwidth) {
             delay = (currentBitrateKpbs / shaper.maxBandwidth) * duration - duration;
             progressEvents.push(event);
-            // console.log('delaying progress event by ' + Math.round(delay) + ' ms');
             progressTimer = setTimeout(function() {
                 triggerProgress(event);
             }, delay);
@@ -164,11 +168,6 @@ function setupThrottledXhr(xhr, xhrProxy) {
 
         triggerProgress(event);
     };
-
-    let id = Math.round(Math.random() * 1e6);
-
-    xhr.__throttledId = id;
-    xhrProxy.__throttledId = id;
 }
 
 export default setupThrottledXhr;
