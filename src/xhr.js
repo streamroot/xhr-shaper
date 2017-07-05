@@ -4,6 +4,8 @@ import setupThrottledXhr from './setup-throttled-xhr';
 import setupCachedXhr from './setup-cached-xhr';
 import cache from './cache';
 
+const DEBUG = false;
+
 const PASSTHROUGH_EVENTS = ['loadstart', 'timeout', 'abort', 'error'];
 
 const createListenerWrapper = (type, listener, dispatchedEventsList) => {
@@ -41,7 +43,7 @@ class XHR extends XHRProxy {
 
         this.addEventListener('loadend', () => {
             if (this._caching && this._cacheWrite) {
-                console.log('CACHE WRITE:', this._xhr.responseURL);
+                DEBUG && console.log('CACHE WRITE:', this._xhr.responseURL);
                 this._cacheInstance.put(
                     this._xhr.responseURL, 
                     this._response, 
@@ -134,9 +136,21 @@ class XHR extends XHRProxy {
     }
 
     _setupWrappedResponseData() {
-        try { this._response = this._xhr.response; } catch(e) {console.warn(e)}
-        try { this._responseText = this._xhr.responseText; } catch(e) {console.warn(e)}
-        try { this._responseXML = this._xhr.responseXML; } catch(e) {console.warn(e)}
+        try { 
+            this._response = this._xhr.response; 
+        } catch(e) {
+            DEBUG && console.warn(e)
+        }
+        try { 
+            this._responseText = this._xhr.responseText; 
+        } catch(e) {
+            DEBUG && console.warn(e)
+        }
+        try { 
+            this._responseXML = this._xhr.responseXML; 
+        } catch(e) {
+            DEBUG && console.warn(e)
+        }
     }
 
     _setupWrappedHeaders() {
@@ -174,11 +188,11 @@ class XHR extends XHRProxy {
             if (!this._cacheInstance) {
                 throw new Error('no cache setup');
             }
-            console.log('CACHE GET:', url);
+            DEBUG && console.log('CACHE GET:', url);
             const cachedResource = this._cacheInstance.get(url, false);
             if (cachedResource) {
 
-                console.log('CACHE HIT');
+                DEBUG && console.log('CACHE HIT');
 
                 this._handleCacheHitOnSend(cachedResource);
             }
