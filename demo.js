@@ -24,8 +24,10 @@ function pushStats(bytes, total) {
 		stats.t0 = Date.now();
 	}
 
-    stats.timestamps.push(Date.now() - stats.t0);
-    stats.bytes.push(bytes);
+	stats.timestamps.push(Date.now() - stats.t0);
+	stats.bytes.push(bytes);
+
+	console.log('stats pushed:', stats);
 }
 
 function onRequestDone(xhr) {
@@ -34,19 +36,21 @@ function onRequestDone(xhr) {
 
 	var el = document.querySelector('#graph');
 
-	Plotly.plot(el, [{
-	    	x: stats.timestamps,
-	    	y: stats.bytes 
+	Plotly.plot(
+		el, 
+		[{
+				x: stats.timestamps,
+				y: stats.bytes 
 		}], 
 		{ 
-    		margin: { t: 0 } 
-    	} 
-   	);
+			margin: { t: 0 } 
+		} 
+	);
 
-   	document.querySelector('#throughput').innerHTML = stats.throughput;
-   	document.querySelector('#duration').innerHTML = stats.totalDuration;
+	document.querySelector('#throughput').innerHTML = stats.throughput;
+	document.querySelector('#duration').innerHTML = stats.totalDuration;
 
-   	document.querySelector('#status').innerHTML = 'Ready';
+	document.querySelector('#status').innerHTML = 'Ready';
 }
 
 function onClickLoad() {
@@ -74,78 +78,83 @@ function onClickLoad() {
 	makeRequest(DEFAULT_URL, onRequestDone, minLatency, maxBandwidth);
 }
 
-function makeRequest(url, done, minLatency, maxBandwidth) {
-  var loaded, total;
+function makeRequest(url, onRequestDone, minLatency, maxBandwidth) {
+	var loaded, total;
 
-  console.log('url:', url);
+	console.log('url:', url);
 
-  requestActive = true;
+	requestActive = true;
 
-  var xhr = new XMLHttpRequest();
+	var xhr = new XMLHttpRequest();
 
-  xhr.shaper.minLatency = minLatency;
-  xhr.shaper.maxBandwidth = maxBandwidth;
+	xhr.caching = false;
 
-  xhr.onreadystatechange = function(e) {
-    console.log('readyState: ' + xhr.readyState);
+	xhr.shaper.minLatency = minLatency;
+	xhr.shaper.maxBandwidth = maxBandwidth;
 
-    if (xhr.readyState === 4) {
-      doneTime = Date.now();
-      var duration = doneTime - reqTime;
-      var bitrate = Math.round(8 * total / duration);
+	xhr.onreadystatechange = function(e) {
+		console.log('readyState changed: ' + xhr.readyState);
 
-      stats.totalDuration = duration;
-      stats.throughput = bitrate;
+		if (xhr.readyState === 4) {
+			doneTime = Date.now();
+			var duration = doneTime - reqTime;
+			var bitrate = Math.round(8 * total / duration);
 
-      console.log('Loaded ' + total + ' bytes in ' + duration + ' ms, computed bitrate: ' + bitrate + ' kbps');
-    }
-  };
-  xhr.onprogress = function(e) {
-    loaded = e.loaded;
-    total = e.total;
+			stats.totalDuration = duration;
+			stats.throughput = bitrate;
 
-    pushStats(e.loaded, e.total);
+			console.log('Loaded ' + total + ' bytes in ' + duration + ' ms, computed bitrate: ' + bitrate + ' kbps');
+		}
+	};
+	xhr.onprogress = function(e) {
+		loaded = e.loaded;
+		total = e.total;
 
-    console.log('Progress: ' + e.loaded + ' of ' + e.total);
-  };
+		pushStats(e.loaded, e.total);
 
-  xhr.onload = function(e) {
+		console.log('Progress: ' + e.loaded + ' of ' + e.total);
+	};
 
-    if (xhr.readyState < 4) {
-      console.warn('onload called with readyState:', xhr.readyState, ' id:', xhr.id);
-      return;
-    }
+	xhr.onload = function(e) {
 
-    console.log('Loading done');
-    //console.log(e);
+		if (xhr.readyState < 4) {
+			console.warn('onload called with readyState:', xhr.readyState, ' id:', xhr.id);
+			return;
+		}
 
-    console.log('readyState:', xhr.readyState);
+		console.log('Loading done');
+		//console.log(e);
 
-    if (xhr.response.byteLength < 1024) {
-      console.log(new TextDecoder("utf-8").decode(xhr.response));
-    }
+		console.log('readyState:', xhr.readyState);
 
-    done(xhr);
-  }
+		if (xhr.response.byteLength < 1024) {
+			console.log(new TextDecoder("utf-8").decode(xhr.response));
+		}
 
-  xhr.onloadend = function(e) {
-    console.log('Loading ended');
-    //console.log(e);
-  }
 
-  xhr.withCredentials = false;
-  xhr.open('GET', url, true);
-  xhr.responseType = 'arraybuffer';
+	}
 
-  console.debug('Max bandwidth: ' + xhr.shaper.maxBandwidth);
-  console.debug('Min latency: ' + xhr.shaper.minLatency);
+	xhr.onloadend = function(e) {
+		console.log('Loading ended');
 
-  var reqTime = Date.now(), doneTime;
+		pushStats(loaded, total);
 
-  xhr.send();
+		onRequestDone(xhr);
+	}
 
-  resetStats();
-  pushStats(0, 0);
+	xhr.withCredentials = false;
+	xhr.open('GET', url, true);
+	xhr.responseType = 'arraybuffer';
 
-  return xhr;
+	console.debug('Max bandwidth: ' + xhr.shaper.maxBandwidth);
+	console.debug('Min latency: ' + xhr.shaper.minLatency);
+
+	var reqTime = Date.now(), doneTime;
+
+	xhr.send();
+
+	resetStats();
+	pushStats(0, 0);
+
+	return xhr;
 }
