@@ -35,6 +35,10 @@ describe('xhr-shim', function() {
     var xhr = makeRequest(bigChunkUrl, done, 1000, 512);
   });
 
+  it('should make a large throttled request and accurately limit the bandwidth', function(done) {
+    var xhr = makeRequest(bigChunkUrl, done, 0, 512);
+  });
+
   it('should make two consequent requests', function(done) {
     var xhr = makeRequest(fooUrl, function() {
 
