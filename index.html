@@ -1,67 +1,50 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <!-- encoding must be set for mocha's special characters to render properly -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/2.4.5/mocha.css" />
+
+    <script src="https://cdn.plot.ly/plotly-1.2.0.min.js"></script>
+
+    <script src="./dist/XHRShaper.this.js"></script>
+
+    <script src="demo.js"></script>
+
+    <style type="text/css">
+      body {
+          font-size: 1em;
+          font-family: Helvetica;
+      }
+    </style>
+
   </head>
   <body>
-    <div id="mocha"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/2.4.5/mocha.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/should.js/8.1.1/should.js"></script>
-    <script>
-      mocha.ui('bdd')
-    </script>
 
-    <script src="./index.js"></script>
+    <center>
 
-    <script>
+      <h1>XHR-shaper v2 demo</h1>
 
-      XHRShaper.useGlobal();
+      <progress id="progress" value="" max=""></progress>
 
-      var loaded, total;
+      <p>Status:&nbsp;<b><span id="status">Ready</span></b></p>
 
-      var xhr = new XMLHttpRequest();
+      <p>
+        Min. latency (ms): <input type="text" id="latency" size=6></input>
+      </p>
+      <p>
+        Max. bandwidth (kbit/s): <input type="text" id="bandwidth" size=6></input>
+      </p>
 
-      xhr.onreadystatechange = function(e) {
-        console.log('readyState: ' + xhr.readyState);
+      <button onclick="onClickLoad()">Load</button>
 
-        if (xhr.readyState === 4) {
-          doneTime = Date.now();
-          var duration = doneTime - reqTime;
-          var bitrate = Math.round(8*total / duration);
-          console.debug('Loaded ' + total + ' bytes in ' + duration + ' ms, computed bitrate: ' + bitrate + ' kbps');
-        }
-      };
-      xhr.onprogress = function(e) {
-        loaded = e.loaded;
-        total = e.total;
+      <div id="graph"></div>
 
-        console.log('Progress: ' + e.loaded + ' of ' + e.total);
-      };
+      <p>
+        Measured > Throughput (kbit/s):&nbsp;<span id="throughput"></span>
+      </p>
+      <p>
+        Measured >Total duration (ms):&nbsp;<span id="duration"></span>
+      </p>
 
-      xhr.onloadend = function(e) {
-        console.log('Loading ended');
-        //console.log(e);
-      }
+    </center>
 
-      xhr.withCredentials = false;
-      xhr.open('GET', "http://www.streambox.fr/playlists/test_001/stream_110k_48k_416x234_000.ts", true);
-      xhr.responseType = 'arraybuffer';
-
-      xhr.shaper.minLatency = 1000;
-      xhr.shaper.maxBandwidth = 512;
-
-      console.debug('Max bandwidth: ' + xhr.shaper.maxBandwidth);
-      console.debug('Min latency: ' + xhr.shaper.minLatency);
-
-      var reqTime = Date.now(), doneTime;
-
-      xhr.send();
-
-    </script>
-
-    <script>
-      mocha.run();
-    </script>
   </body>
 </html>

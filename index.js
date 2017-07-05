@@ -1,19 +1,15 @@
-'use strict';
-
-var BaseXHR = require('./src/base-xhr');
-var objectMirrors = require('./src/object-mirrors');
-var XMLHttpRequestShim = require('./src/shim');
+import XHRProxy from './src/xhr-proxy';
+import XHR from './src/xhr';
 
 function useGlobal() {
     // Shim window/global XHR
     var global = window || global;
     // Overload native window constructor
-    global.XMLHttpRequest = XMLHttpRequestShim;
+    global.XMLHttpRequest = XHR;
 }
 
 module.exports = {
-    BaseXHR: BaseXHR,
-    XMLHttpRequest: XMLHttpRequestShim,
-    useGlobal: useGlobal,
-    objectMirrors: objectMirrors
+    XMLHttpRequest: XHR,
+    XHRProxy,
+    useGlobal
 };
